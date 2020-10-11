@@ -10,34 +10,35 @@ def getFileType(filename):
     filetype = os.path.splitext(filename)[1].lower()
     if(filetype == ".jpeg"):
         filetype = ".jpg"
-    print(filetype)
-    return filetype
+    return filetype.strip('.')
 
 
-def renameJpg(filePath, fileName):
+def renameImage(filePath, fileName):
     dateTime = "000000"
     exif = {}
-    ext = os.path.splitext(fileName)[1]
-    try:
-        image = Image.open(filePath)
-        image.verify()
-        for (key, value) in image._getexif().items():
-            exif[TAGS.get(key)] = value
-        if(exif.get("DateTime")):
-            dateTime = str(exif.get("DateTime")).replace(":", "")
-        elif(exif.get("DateTimeOriginal")):
-            dateTime = str(exif.get("DateTimeOriginal")).replace(":", "")
-        elif(exif.get("DateTimeDigitized")):
-            dateTime = str(exif.get("DateTimeDigitized")).replace(":", "")
-        elif(exif.get("29")):
-            dateTime = str(exif.get("29")).replace(":", "")
-    except Exception:
-        dateTime = "000000"
-    dateTime = str(dateTime).replace(" ", "-", 1)
-    newName = dateTime + "__" + fileName
-    newName = str(newName).replace(" ", "_")
-    if ext != "jpg":
+    ext = getFileType(fileName)
+    if(ext != "zip" and ext != "7z" and ext != "txt" and ext != "pdf"):
+        try:
+            image = Image.open(filePath)
+            image.verify()
+            for (key, value) in image._getexif().items():
+                exif[TAGS.get(key)] = value
+            if(exif.get("DateTime")):
+                dateTime = str(exif.get("DateTime")).replace(":", "")
+            elif(exif.get("DateTimeOriginal")):
+                dateTime = str(exif.get("DateTimeOriginal")).replace(":", "")
+            elif(exif.get("DateTimeDigitized")):
+                dateTime = str(exif.get("DateTimeDigitized")).replace(":", "")
+            elif(exif.get("29")):
+                dateTime = str(exif.get("29")).replace(":", "")
+        except Exception:
+            dateTime = "000000"
+        dateTime = str(dateTime).replace(" ", "-", 1)
+        newName = dateTime + "__" + fileName
+        newName = str(newName).replace(" ", "_")
         newName = newName.replace(ext, getFileType(newName))
+    else:
+        newName = fileName
     return newName
 
 
@@ -46,8 +47,8 @@ def getYear(fileName):
     return year
 
 
-def doTheCopy(fileType, fullPath, newName):
-    finalPath = outbox+'/'+fileType+'/'+getYear(newName)+'/'
+def doTheCopy(fullPath, newName):
+    finalPath = outbox+'/'+getFileType(newName)+'/'+getYear(newName)+'/'
     try:
         shutil.copy(fullPath, finalPath+newName)
     except IOError as e:
@@ -60,7 +61,8 @@ def doTheCopy(fileType, fullPath, newName):
 
 inbox = '../TestInbox'
 outbox = '../TestOutbox'
-
+filesProcessed = 0
+filesSkipped = 0
 
 if len(sys.argv) == 3:
     inboxDirectory = sys.argv[1]
@@ -69,20 +71,13 @@ if len(sys.argv) == 3:
 for subdir, dirs, files in os.walk(inbox):
     for file in files:
         fullPath = os.path.join(subdir, file)
-        type = getFileType(file)
-        newName = "noName"
-        if(type == ".jpg"):
-            newName = renameJpg(fullPath, file)
-        elif(type == ".gif"):
-            print("GIF")
-        elif(type == ".bmp"):
-            print("BMP")
-        elif(type == ".png"):
-            print("PING")
-        elif(type == ".tif"):
-            print("WTIF")
+        newName = ""
+        newName = renameImage(fullPath, file)
+        if(newName != ""):
+            doTheCopy(fullPath, newName)
+            filesProcessed += 1
         else:
-            print("I DON'T KNOW")
-        # newPath = outbox + '/' + type.strip('.') + '/' + newName
-        if(newName != "noName"):
-            doTheCopy(type.strip('.'), fullPath, newName)
+            filesSkipped += 1
+
+print("Files Processed: " + str(filesProcessed))
+print("Files Skipped: " + str(filesSkipped))
