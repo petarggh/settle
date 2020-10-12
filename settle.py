@@ -2,6 +2,7 @@ import os
 import sys
 import shutil
 import errno
+import filecmp
 from PIL import Image
 from PIL.ExifTags import TAGS
 
@@ -48,21 +49,29 @@ def getYear(fileName):
 
 
 def doTheCopy(fullPath, newName):
+    global dupeFiles, outbox, dupeBox
     finalPath = outbox+'/'+getFileType(newName)+'/'+getYear(newName)+'/'
+    if(os.path.exists(finalPath+newName)):
+        if(filecmp.cmp(fullPath, finalPath+newName)):
+            newName = 'dupe_' + newName
+            finalPath = outbox+'/'+dupeBox+'/'+getFileType(newName)+'/'+getYear(newName)+'/'
+            dupeFiles += 1
     try:
-        shutil.copy(fullPath, finalPath+newName)
+        shutil.copy2(fullPath, finalPath+newName)
     except IOError as e:
         if e.errno != errno.ENOENT:
             raise
         # try creating parent directories
         os.makedirs(os.path.dirname(finalPath))
-        shutil.copy(fullPath, finalPath+newName)
+        shutil.copy2(fullPath, finalPath+newName)
 
 
 inbox = '../TestInbox'
 outbox = '../TestOutbox'
+dupeBox = outbox + '/dupes'
 filesProcessed = 0
 filesSkipped = 0
+dupeFiles = 0
 
 if len(sys.argv) == 3:
     inboxDirectory = sys.argv[1]
@@ -81,3 +90,4 @@ for subdir, dirs, files in os.walk(inbox):
 
 print("Files Processed: " + str(filesProcessed))
 print("Files Skipped: " + str(filesSkipped))
+print("Duplicate Files: " + str(dupeFiles))
