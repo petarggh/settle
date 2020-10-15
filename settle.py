@@ -48,22 +48,39 @@ def getYear(fileName):
     return year
 
 
-def doTheCopy(sourcePath, finalPath, newName):
-    global dupeFiles, outbox, dupeBox
-    # finalPath = outbox+'/'+getFileType(newName)+'/'+getYear(newName)+'/'
-    if(os.path.exists(outbox+finalPath+newName)):
-        if(filecmp.cmp(sourcePath, outbox+finalPath+newName)):
+def dupeCheck(sourcePath, newPath, newName):
+    if(os.path.exists(newPath+newName)):
+        if(filecmp.cmp(sourcePath, newPath+newName)):
             newName = 'dupe_' + newName
-            finalPath = dupeBox+'/'+finalPath+'/'
-            dupeFiles += 1
-    try:
-        shutil.copy2(sourcePath, outbox+finalPath+newName)
-    except IOError as e:
-        if e.errno != errno.ENOENT:
-            raise
-        # try creating parent directories
-        os.makedirs(os.path.dirname(outbox+finalPath))
-        shutil.copy2(sourcePath, outbox+finalPath+newName)
+            newName = dupeCheck(sourcePath, newPath, newName)
+    return newName
+
+
+def doTheCopy(sourcePath, newPath, newName):
+    global dupeFiles, outbox, dupeBox
+    tmpName = dupeCheck(sourcePath, outbox+newPath, newName)
+    if tmpName != newName:
+        dupeFiles += 1
+        try:
+            shutil.copy2(sourcePath, outbox+'dupes/'+newPath+tmpName)
+        except IOError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            # try creating parent directories
+            os.makedirs(os.path.dirname(outbox+'dupes/'+newPath))
+            # try copy again
+            shutil.copy2(sourcePath, outbox+'dupes/'+newPath+newName)
+    else:
+        try:
+            shutil.copy2(sourcePath, outbox+newPath+newName)
+        except IOError as e:
+            if e.errno != errno.ENOENT:
+                raise
+            # try creating parent directories
+            os.makedirs(os.path.dirname(outbox+newPath))
+            # try copy again
+            shutil.copy2(sourcePath, outbox+newPath+newName)
+    return True
 
 
 inbox = '../TestInbox'
@@ -85,8 +102,8 @@ for subdir, dirs, files in os.walk(inbox):
         newName = ""
         newName = renameImage(sourcePath, file)
         if(newName != ""):
-            finalPath = getFileType(newName)+'/'+getYear(newName)+'/'
-            doTheCopy(sourcePath, finalPath, newName)
+            newPath = getFileType(newName)+'/'+getYear(newName)+'/'
+            doTheCopy(sourcePath, newPath, newName)
             filesProcessed += 1
         else:
             filesSkipped += 1
