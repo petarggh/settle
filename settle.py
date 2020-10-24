@@ -91,6 +91,7 @@ if len(sys.argv) == 2:
 outbox = outbox + '/'
 print("outside main loop")
 for subdir, dirs, files in os.walk(inbox):
+    print(file)
     for file in files:
         print("inner loop")
         sourcePath = os.path.join(subdir, file)
