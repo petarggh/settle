@@ -77,7 +77,7 @@ def renameFile(sourcePath, fileName):
 
 inbox = '/home/peter/TestInbox'
 outbox = '/home/peter/TestOutbox'
-dupeBox = outbox + '/0dupes/'
+
 filesProcessed = 0
 filesSkipped = 0
 dupeFiles = 0
@@ -89,6 +89,10 @@ if len(sys.argv) == 2:
     outbox = sys.argv[2]
 
 outbox = outbox + '/'
+dupeBox = outbox + '/0dupes/'
+print("Inbox: " + inbox)
+print("Outbox: " + outbox)
+
 print("outside main loop")
 walky = next(os.walk(inbox))
 print("walky= " + str(len(walky)))
