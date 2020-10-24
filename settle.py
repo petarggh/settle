@@ -7,14 +7,46 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 
 
+def slowCompare(sourcePath, fileName, outbox):
+    for subdir, dirs, files in os.walk(outbox):
+        for file in files:
+            try:
+                if(filecmp.cmp(sourcePath, outbox+newPath+file)):
+                    return True
+            except IOError as e:
+                if e.errno != errno.ENOENT:
+                    raise
+    return False
+
+
 def getFileType(filename):
     filetype = os.path.splitext(filename)[1].lower()
     if(filetype == ".jpeg"):
         filetype = ".jpg"
+    elif(filetype == ""):
+        filetype = ".unknown"
     return filetype.strip('.')
 
 
-def renameImage(sourcePath, fileName):
+def getYear(fileName):
+    year = newName[0:4]
+    return year
+
+
+def doTheCopy(outbox, sourcePath, newPath, newName):
+    try:
+        shutil.copy2(sourcePath, outbox+newPath+newName)
+    except IOError as e:
+        if e.errno != errno.ENOENT:
+            raise
+        # try creating parent directories
+        os.makedirs(os.path.dirname(outbox+newPath))
+        # try copy again
+        shutil.copy2(sourcePath, outbox+newPath+newName)
+    return True
+
+
+def renameFile(sourcePath, fileName):
     dateTime = "000000"
     exif = {}
     ext = getFileType(fileName)
@@ -43,49 +75,9 @@ def renameImage(sourcePath, fileName):
     return newName
 
 
-def getYear(fileName):
-    year = newName[0:4]
-    return year
-
-
-def dupeCheck(sourcePath, newPath, newName):
-    if(os.path.exists(newPath+newName)):
-        if(filecmp.cmp(sourcePath, newPath+newName)):
-            newName = 'dupe_' + newName
-            newName = dupeCheck(sourcePath, newPath, newName)
-    return newName
-
-
-def doTheCopy(sourcePath, newPath, newName):
-    global dupeFiles, outbox, dupeBox
-    tmpName = dupeCheck(sourcePath, outbox+newPath, newName)
-    if tmpName != newName:
-        dupeFiles += 1
-        try:
-            shutil.copy2(sourcePath, outbox+'dupes/'+newPath+tmpName)
-        except IOError as e:
-            if e.errno != errno.ENOENT:
-                raise
-            # try creating parent directories
-            os.makedirs(os.path.dirname(outbox+'dupes/'+newPath))
-            # try copy again
-            shutil.copy2(sourcePath, outbox+'dupes/'+newPath+newName)
-    else:
-        try:
-            shutil.copy2(sourcePath, outbox+newPath+newName)
-        except IOError as e:
-            if e.errno != errno.ENOENT:
-                raise
-            # try creating parent directories
-            os.makedirs(os.path.dirname(outbox+newPath))
-            # try copy again
-            shutil.copy2(sourcePath, outbox+newPath+newName)
-    return True
-
-
 inbox = '../TestInbox'
 outbox = '../TestOutbox'
-dupeBox = outbox + '/dupes'
+dupeBox = outbox + '/0dupes/'
 filesProcessed = 0
 filesSkipped = 0
 dupeFiles = 0
@@ -100,11 +92,15 @@ for subdir, dirs, files in os.walk(inbox):
     for file in files:
         sourcePath = os.path.join(subdir, file)
         newName = ""
-        newName = renameImage(sourcePath, file)
+        newName = renameFile(sourcePath, file)
         if(newName != ""):
             newPath = getFileType(newName)+'/'+getYear(newName)+'/'
-            doTheCopy(sourcePath, newPath, newName)
-            filesProcessed += 1
+            if (slowCompare(sourcePath, file, outbox)):
+                dupeFiles += 1
+                doTheCopy(dupeBox, sourcePath, newPath, newName)
+            else:
+                doTheCopy(outbox, sourcePath, newPath, newName)
+                filesProcessed += 1
         else:
             filesSkipped += 1
 
