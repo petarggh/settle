@@ -82,6 +82,7 @@ filesProcessed = 0
 filesSkipped = 0
 dupeFiles = 0
 
+print("Starting")
 if len(sys.argv) == 2:
     inbox = sys.argv[1]
     outbox = sys.argv[2]
@@ -96,12 +97,17 @@ for subdir, dirs, files in os.walk(inbox):
             newPath = getFileType(newName)+'/'+getYear(newName)+'/'
             if (slowCompare(sourcePath, file, outbox)):
                 dupeFiles += 1
+                print("file "+file+ " is a dupe")
                 doTheCopy(dupeBox, sourcePath, newPath, newName)
             else:
                 doTheCopy(outbox, sourcePath, newPath, newName)
                 filesProcessed += 1
+                print("file "+file+ " processed")
+
         else:
             filesSkipped += 1
+            print("file "+file+ " skipped")
+
 
 print("Files Processed: " + str(filesProcessed))
 print("Files Skipped: " + str(filesSkipped))
