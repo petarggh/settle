@@ -89,8 +89,10 @@ if len(sys.argv) == 2:
     outbox = sys.argv[2]
 
 outbox = outbox + '/'
+print("outside main loop")
 for subdir, dirs, files in os.walk(inbox):
     for file in files:
+        print("inner loop")
         sourcePath = os.path.join(subdir, file)
         newName = ""
         newName = renameFile(sourcePath, file)
