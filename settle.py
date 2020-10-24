@@ -82,10 +82,9 @@ filesProcessed = 0
 filesSkipped = 0
 dupeFiles = 0
 
-if len(sys.argv) == 3:
+if len(sys.argv) == 2:
     inbox = sys.argv[1]
     outbox = sys.argv[2]
-    dupeBox = sys.argv[3]
 
 outbox = outbox + '/'
 for subdir, dirs, files in os.walk(inbox):
