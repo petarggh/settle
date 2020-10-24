@@ -94,8 +94,8 @@ print("Inbox: " + inbox)
 print("Outbox: " + outbox)
 
 print("outside main loop")
-walky = next(os.walk(inbox))
-print("walky= " + str(len(walky)))
+# walky = next(os.walk(inbox))
+# print("walky= " + str(len(walky)))
 for subdir, dirs, files in os.walk(inbox):
     print("files: " + str(len(files)))
     for file in files:
