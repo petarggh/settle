@@ -84,6 +84,7 @@ dupeFiles = 0
 
 print("Starting")
 if len(sys.argv) == 2:
+    print("using custom args..")
     inbox = sys.argv[1]
     outbox = sys.argv[2]
 
