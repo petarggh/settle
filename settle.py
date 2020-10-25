@@ -83,7 +83,7 @@ filesSkipped = 0
 dupeFiles = 0
 
 print("Starting")
-if len(sys.argv) == 2:
+if len(sys.argv) == 3:
     print("using custom args..")
     inbox = sys.argv[1]
     outbox = sys.argv[2]
