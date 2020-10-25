@@ -77,29 +77,25 @@ def renameFile(sourcePath, fileName):
 
 inbox = ''
 outbox = ''
-
+width, height = os.get_terminal_size()
 filesProcessed = 0
 filesSkipped = 0
 dupeFiles = 0
 
-print("Starting")
+
 if len(sys.argv) == 3:
-    print("using custom args..")
     inbox = sys.argv[1]
     outbox = sys.argv[2]
 
 outbox = outbox + '/'
 dupeBox = outbox + '/0dupes/'
-print("Inbox: " + inbox)
-print("Outbox: " + outbox)
-
-print("outside main loop")
-# walky = next(os.walk(inbox))
-# print("walky= " + str(len(walky)))
+print("Settling files from " + inbox + " to " + outbox)
 for subdir, dirs, files in os.walk(inbox):
-    print("files: " + str(len(files)))
     for file in files:
-        # print("inner loop")
+        print("Current file " + file, end="\r")  # +
+              # "Files Processed: " + str(filesProcessed) + "\n" +
+              #"Files Skipped: " + str(filesSkipped) + "\n" +
+              # "Duplicate Files: " + str(dupeFiles))
         sourcePath = os.path.join(subdir, file)
         newName = ""
         newName = renameFile(sourcePath, file)
@@ -107,18 +103,15 @@ for subdir, dirs, files in os.walk(inbox):
             newPath = getFileType(newName)+'/'+getYear(newName)+'/'
             if (slowCompare(sourcePath, file, outbox)):
                 dupeFiles += 1
-                # print("file " + file + " is a dupe")
                 doTheCopy(dupeBox, sourcePath, newPath, newName)
             else:
                 doTheCopy(outbox, sourcePath, newPath, newName)
                 filesProcessed += 1
-                # print("file " + file + " processed")
 
         else:
             filesSkipped += 1
-            # print("file " + file + " skipped")
 
-
+print("\n")
 print("Files Processed: " + str(filesProcessed))
 print("Files Skipped: " + str(filesSkipped))
 print("Duplicate Files: " + str(dupeFiles))
