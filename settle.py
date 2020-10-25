@@ -3,6 +3,7 @@ import sys
 import shutil
 import errno
 import filecmp
+import curses
 from PIL import Image
 from PIL.ExifTags import TAGS
 
@@ -82,20 +83,23 @@ filesProcessed = 0
 filesSkipped = 0
 dupeFiles = 0
 
-
 if len(sys.argv) == 3:
     inbox = sys.argv[1]
     outbox = sys.argv[2]
 
 outbox = outbox + '/'
 dupeBox = outbox + '/0dupes/'
-print("Settling files from " + inbox + " to " + outbox)
+introText = "Settling files from " + inbox + " to " + outbox
+print(introText)
+screen = curses.initscr()
+screen.addstr(0, 0, "This string gets printed at position (0, 0)")
+screen.addstr(3, 1, "Try Russian text: Привет")  # Python 3 required for unicode
+screen.addstr(4, 4, "X")
+screen.addch(5, 5, "Y")
+screen.refresh()
 for subdir, dirs, files in os.walk(inbox):
     for file in files:
         print("Current file " + file, end="\r")  # +
-              # "Files Processed: " + str(filesProcessed) + "\n" +
-              #"Files Skipped: " + str(filesSkipped) + "\n" +
-              # "Duplicate Files: " + str(dupeFiles))
         sourcePath = os.path.join(subdir, file)
         newName = ""
         newName = renameFile(sourcePath, file)
@@ -107,7 +111,6 @@ for subdir, dirs, files in os.walk(inbox):
             else:
                 doTheCopy(outbox, sourcePath, newPath, newName)
                 filesProcessed += 1
-
         else:
             filesSkipped += 1
 
@@ -115,3 +118,4 @@ print("\n")
 print("Files Processed: " + str(filesProcessed))
 print("Files Skipped: " + str(filesSkipped))
 print("Duplicate Files: " + str(dupeFiles))
+curses.endwin()
