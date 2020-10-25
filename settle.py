@@ -75,8 +75,8 @@ def renameFile(sourcePath, fileName):
     return newName
 
 
-inbox = '/home/peter/TestInbox'
-outbox = '/home/peter/TestOutbox'
+inbox = ''
+outbox = ''
 
 filesProcessed = 0
 filesSkipped = 0
